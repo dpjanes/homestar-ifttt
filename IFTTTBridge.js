@@ -44,6 +44,9 @@ var IFTTTBridge = function (initd, native) {
     self.initd = _.defaults(initd,
         iotdb.keystore().get("bridges/IFTTTBridge/initd"), {
             key: null,
+            port: null,
+            action: null,
+            uuid: null,
         }
     );
     self.native = native;   // the thing that does the work - keep this name

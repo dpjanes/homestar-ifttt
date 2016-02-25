@@ -1,5 +1,5 @@
 /*
- *  IFTTTTriger.js
+ *  IFTTTTrigger.js
  *
  *  David Janes
  *  IOTDB
@@ -9,8 +9,8 @@
 var iotdb = require("iotdb");
 
 exports.binding = {
-    bridge: require('../WeMoBridge').Bridge,
-    model: require('./IFTTTTriger.json'),
+    bridge: require('../IFTTTBridge').Bridge,
+    model: require('./ifttt-trigger.json'),
     connectd: {
         data_out: function(paramd) {
             if (paramd.cookd.on !== undefined) {
