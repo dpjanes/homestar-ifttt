@@ -1,0 +1,39 @@
+--
+--  compile to JSON with 'iotql-model IFTTTTriger.iotql'
+--
+CREATE MODEL IFTTTTriger WITH
+    schema:name = "IFTTT Action",
+    schema:description = "Trigger an IFTTT"
+ATTRIBUTE event WITH
+    schema:name = "event",
+    iot:purpose = iot-purpose:action,
+    iot:type = iot:type.string,
+    iot:actuator = true,
+    iot:sensor = false,
+    iot:write = true,
+    iot:read = false
+ATTRIBUTE "value1" WITH
+    schema:name = "value 1",
+    iot:purpose = iot-purpose:value,
+    iot:type = iot:type.string,
+    iot:actuator = true,
+    iot:sensor = false,
+    iot:write = true,
+    iot:read = false
+ATTRIBUTE "value2" WITH
+    schema:name = "value 2",
+    iot:purpose = iot-purpose:value,
+    iot:type = iot:type.string,
+    iot:actuator = true,
+    iot:sensor = false,
+    iot:write = true,
+    iot:read = false
+ATTRIBUTE "value3" WITH
+    schema:name = "value 3",
+    iot:purpose = iot-purpose:value,
+    iot:type = iot:type.string,
+    iot:actuator = true,
+    iot:sensor = false,
+    iot:write = true,
+    iot:read = false
+;

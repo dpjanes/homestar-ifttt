@@ -25,7 +25,7 @@
 var iotdb = require('iotdb');
 var _ = iotdb._;
 
-var ifttt = require('ifttt');
+var unirest = require('unirest');
 
 var logger = iotdb.logger({
     name: 'homestar-ifttt',
@@ -43,10 +43,14 @@ var IFTTTBridge = function (initd, native) {
 
     self.initd = _.defaults(initd,
         iotdb.keystore().get("bridges/IFTTTBridge/initd"), {
-            poll: 30
+            key: null,
         }
     );
     self.native = native;   // the thing that does the work - keep this name
+
+    if (_.is.Empty(self.initd.key)) {
+        throw new Error("IFTTTBridge: expected 'key' or /bridges/IFTTTBridge/initd/key");
+    }
 
     if (self.native) {
         self.queue = _.queue("IFTTTBridge");
@@ -71,16 +75,7 @@ IFTTTBridge.prototype.discover = function () {
         method: "discover"
     }, "called");
 
-    /*
-     *  This is the core bit of discovery. As you find new
-     *  thimgs, make a new IFTTTBridge and call 'discovered'.
-     *  The first argument should be self.initd, the second
-     *  the thing that you do work with
-     */
-    var s = self._ifttt();
-    s.on('something', function (native) {
-        self.discovered(new IFTTTBridge(self.initd, native));
-    });
+    self.discovered(new IFTTTBridge(_.d.compose.shallow({}, self.initd), {}));
 };
 
 /**
@@ -93,25 +88,6 @@ IFTTTBridge.prototype.connect = function (connectd) {
     }
 
     self._validate_connect(connectd);
-
-    self._setup_polling();
-    self.pull();
-};
-
-IFTTTBridge.prototype._setup_polling = function () {
-    var self = this;
-    if (!self.initd.poll) {
-        return;
-    }
-
-    var timer = setInterval(function () {
-        if (!self.native) {
-            clearInterval(timer);
-            return;
-        }
-
-        self.pull();
-    }, self.initd.poll * 1000);
 };
 
 IFTTTBridge.prototype._forget = function () {
@@ -159,27 +135,42 @@ IFTTTBridge.prototype.push = function (pushd, done) {
         pushd: pushd
     }, "push");
 
+    var _push = function () {
+        if (!pushd.action) {
+            logger.error({
+                method: "_push",
+                cause: "all IFTTT Triggers must have an 'action' associated with them",
+            }, "expected 'action'");
+
+            return done(new Error("missing action"), null);
+        }
+
+        unirest
+            .post('https://maker.ifttt.com/trigger/' + pushd.action + '/with/key/' + self.initd.key)
+            .json()
+            .send(pushd)
+            .end(function (result) {
+                if (!result.ok) {
+                    logger.error({
+                        method: "push/_push",
+                        error: result.error,
+                    }, "network error");
+                    return done(new Error(result.error), null);
+                } else {
+                    console.log(result.body);
+                    return done(null, null);
+                }
+            });
+    };
+
     var qitem = {
-        // if you set "id", new pushes will unqueue old pushes with the same id
-        // id: self.number, 
+        id: pushd.action,
         run: function () {
-            self._pushd(pushd);
+            _push();
             self.queue.finished(qitem);
-        },
-        coda: function() {
-            done();
-        },
+        }
     };
     self.queue.add(qitem);
-};
-
-/**
- *  Do the work of pushing. If you don't need queueing
- *  consider just moving this up into push
- */
-IFTTTBridge.prototype._push = function (pushd) {
-    if (pushd.on !== undefined) {
-    }
 };
 
 /**
