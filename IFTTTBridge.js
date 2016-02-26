@@ -27,6 +27,7 @@ var _ = iotdb._;
 
 var unirest = require('unirest');
 var express = require('express');
+var express_body_parser = require('body-parser')
 
 var logger = iotdb.logger({
     name: 'homestar-ifttt',
@@ -124,7 +125,7 @@ IFTTTBridge.prototype._discover_in = function () {
     self._app(function (error, app) {
         if (error) {
             logger.error({
-                method: "discover",
+                method: "_discover_in",
                 initd: self.initd,
                 error: _.error.message(error),
             }, "no way to connect");
@@ -135,7 +136,19 @@ IFTTTBridge.prototype._discover_in = function () {
         self.discovered(thing);
 
         var _handle = function(request, response) {
-            console.log("GET", "talking to me!", request.query, request.body);
+            var d = _.d.compose.shallow({}, request.body, request.body);
+            if (d.event !== self.initd.event) {
+                return;
+            }
+
+            logger.info({
+                method: "_discover_in",
+                d: d,
+                method: request.method,
+            }, "got IFTTT request");
+
+            thing.pulled(d);
+            
             response.send("ok");
         };
 
@@ -341,6 +354,8 @@ IFTTTBridge.prototype._app = function (callback) {
     }, "creating web server");
 
     var app = express();
+    app.use(express_body_parser.json());
+
     app.listen(self.initd.port, self.initd.host, function (error) {
         delete __pendingsd[app_key];
 
