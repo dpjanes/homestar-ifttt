@@ -26,6 +26,7 @@ var iotdb = require('iotdb');
 var _ = iotdb._;
 
 var unirest = require('unirest');
+var express = require('express');
 
 var logger = iotdb.logger({
     name: 'homestar-ifttt',
@@ -44,15 +45,33 @@ var IFTTTBridge = function (initd, native) {
     self.initd = _.defaults(initd,
         iotdb.keystore().get("bridges/IFTTTBridge/initd"), {
             key: null,
+            host: null,
             port: null,
             action: null,
             uuid: null,
         }
     );
-    self.native = native;   // the thing that does the work - keep this name
 
     if (_.is.Empty(self.initd.key)) {
         throw new Error("IFTTTBridge: expected 'key' or /bridges/IFTTTBridge/initd/key");
+    }
+
+    // stop the key from leaking into logs
+    self.key = self.initd.key;
+    delete self.initd.key;
+
+    self.native = native;   // the thing that does the work - keep this name
+
+    if (self.initd.port && (!self.initd.host || (self.initd.host === "0.0.0.0"))) {
+        self.initd.host = _.net.ipv4();
+    }
+
+    if (!self.initd.uuid) {
+        logger.error({
+            method: "IFTTTBridge",
+            initd: self.initd,
+            cause: "caller should initialize with an 'uuid', used to uniquely identify things over sessions",
+        }, "missing initd.uuid - problematic");
     }
 
     if (self.native) {
@@ -75,10 +94,38 @@ IFTTTBridge.prototype.discover = function () {
     var self = this;
 
     logger.info({
-        method: "discover"
+        method: "discover",
+        initd: self.initd,
     }, "called");
 
-    self.discovered(new IFTTTBridge(_.d.compose.shallow({}, self.initd), {}));
+    if (self.initd.port) {
+        self._app(function (error, native) {
+            if (error) {
+                logger.error({
+                    method: "discover",
+                    initd: self.initd,
+                    error: _.error.message(error),
+                }, "no way to connect");
+
+                return;
+            }
+
+            native.get("/", function(request, response) {
+                console.log("GET", "talking to me!", request.query, request.body);
+                response.send("ok");
+                // self.discovered(new KNXBridge(self.initd, native));
+            });
+            native.post("/", function(request, response) {
+                console.log("POST", "talking to me!", request.query, request.body);
+                response.send("ok");
+                // self.discovered(new KNXBridge(self.initd, native));
+            });
+
+        });
+        
+    } else {
+        self.discovered(new IFTTTBridge(_.d.compose.shallow({}, self.initd), {}));
+    }
 };
 
 /**
@@ -149,7 +196,7 @@ IFTTTBridge.prototype.push = function (pushd, done) {
         }
 
         unirest
-            .post('https://maker.ifttt.com/trigger/' + pushd.action + '/with/key/' + self.initd.key)
+            .post('https://maker.ifttt.com/trigger/' + pushd.action + '/with/key/' + self.key)
             .json()
             .send(pushd)
             .end(function (result) {
@@ -234,6 +281,69 @@ IFTTTBridge.prototype._ifttt = function () {
     }
 
     return __singleton;
+};
+
+/* -- internals -- */
+var __appd = {};
+var __pendingsd = {};
+
+/**
+ *  This returns a connection object per ( host, port, tunnel_host, tunnel_port )
+ *  tuple, ensuring the correct connection object exists and is connected.
+ *  It calls back with the connection object
+ *
+ *  The code is complicated because we have to keep callbacks stored 
+ *  in '__pendingsd' until the connection is actually made
+ */
+IFTTTBridge.prototype._app = function (callback) {
+    var self = this;
+
+    var app_key = "http://" + self.initd.host + ":" + self.initd.port;
+
+    // app existings
+    var app = __appd[app_key];
+    if (app) {
+        return callback(null, app);
+    }
+
+    // queue exists
+    var pendings = __pendingsd[app_key];
+    if (pendings) {
+        pendings.push(callback);
+        return;
+    }
+
+    // brand new queue
+    pendings = [];
+    __pendingsd[app_key] = pendings;
+
+    pendings.push(callback);
+
+    // create web server
+    logger.info({
+        method: "_app",
+        npending: pendings.length,
+        host: self.initd.host,
+        port: self.initd.port,
+    }, "creating web server");
+
+    var app = express();
+    app.listen(self.initd.port, self.initd.host, function (error) {
+        delete __pendingsd[app_key];
+
+        if (error) {
+            pendings.map(function (pending) {
+                pending(error, null);
+            });
+            return;
+        }
+
+        __appd[app_key] = app;
+
+        pendings.map(function (pending) {
+            pending(null, app);
+        });
+    });
 };
 
 /*
