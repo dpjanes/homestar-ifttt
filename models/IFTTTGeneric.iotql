@@ -1,9 +1,8 @@
 --
---  compile to JSON with 'iotql-model IFTTTTrigger.iotql'
+--  compile to JSON with 'iotql-model IFTTTOut.iotql'
 --
-CREATE MODEL IFTTTTrigger WITH
-    schema:name = "IFTTT Action",
-    schema:description = "Trigger an IFTTT"
+CREATE MODEL IFTTTOut WITH
+    schema:name = "IFTTT Generic Object"
 ATTRIBUTE event WITH
     schema:name = "event",
     iot:purpose = iot-purpose:action,

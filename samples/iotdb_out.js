@@ -9,7 +9,7 @@
 var iotdb = require('iotdb');
 var iot = iotdb.iot();
 
-var things = iot.connect('IFTTTTrigger');
+var things = iot.connect('IFTTTOut');
 things.on("state", function(thing) {
     console.log("+", "state", thing.thing_id(), "\n ", thing.state("istate"));
 });
