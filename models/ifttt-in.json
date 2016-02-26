@@ -1,0 +1,66 @@
+{
+  "@context": {
+    "@base": "file:///ifttt-in",
+    "@vocab": "file:///ifttt-in#",
+    "iot": "https://iotdb.org/pub/iot#",
+    "schema": "http://schema.org/",
+    "iot-purpose": "https://iotdb.org/pub/iot-purpose#",
+    "iot:purpose": {
+      "@id": "https://iotdb.org/pub/iot#purpose",
+      "@type": "@id"
+    },
+    "iot:type": {
+      "@id": "https://iotdb.org/pub/iot#type",
+      "@type": "@id"
+    }
+  },
+  "@id": "",
+  "@type": "iot:Model",
+  "schema:name": "IFTTT Generic Inbound",
+  "iot:attribute": [
+    {
+      "@type": "iot:Attribute",
+      "@id": "#event",
+      "schema:name": "event",
+      "iot:purpose": "iot-purpose:action",
+      "iot:type": "iot:type.string",
+      "iot:actuator": false,
+      "iot:sensor": true,
+      "iot:write": false,
+      "iot:read": true
+    },
+    {
+      "@type": "iot:Attribute",
+      "@id": "#value1",
+      "schema:name": "value 1",
+      "iot:purpose": "iot-purpose:value",
+      "iot:type": "iot:type.string",
+      "iot:actuator": false,
+      "iot:sensor": true,
+      "iot:write": false,
+      "iot:read": true
+    },
+    {
+      "@type": "iot:Attribute",
+      "@id": "#value2",
+      "schema:name": "value 2",
+      "iot:purpose": "iot-purpose:value",
+      "iot:type": "iot:type.string",
+      "iot:actuator": false,
+      "iot:sensor": true,
+      "iot:write": false,
+      "iot:read": true
+    },
+    {
+      "@type": "iot:Attribute",
+      "@id": "#value3",
+      "schema:name": "value 3",
+      "iot:purpose": "iot-purpose:value",
+      "iot:type": "iot:type.string",
+      "iot:actuator": false,
+      "iot:sensor": true,
+      "iot:write": false,
+      "iot:read": true
+    }
+  ]
+}

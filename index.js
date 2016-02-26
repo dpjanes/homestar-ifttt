@@ -24,7 +24,8 @@
 
 exports.Bridge = require('./IFTTTBridge').Bridge;
 exports.bindings = [
-    require('./models/IFTTTTrigger').binding,
+    require('./models/IFTTTOut').binding,
+    require('./models/IFTTTIn').binding,
 ];
 
 exports.iotdb = require("iotdb");

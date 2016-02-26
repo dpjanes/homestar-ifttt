@@ -1,38 +1,38 @@
 --
---  compile to JSON with 'iotql-model IFTTTOut.iotql'
+--  compile to JSON with 'iotql-model IFTTTIn.iotql'
 --
-CREATE MODEL IFTTTOut WITH
-    schema:name = "IFTTT Generic Outbound"
+CREATE MODEL IFTTTIn WITH
+    schema:name = "IFTTT Generic Inbound"
 ATTRIBUTE event WITH
     schema:name = "event",
     iot:purpose = iot-purpose:action,
     iot:type = iot:type.string,
-    iot:actuator = true,
-    iot:sensor = false,
-    iot:write = true,
-    iot:read = false
+    iot:actuator = false,
+    iot:sensor = true,
+    iot:write = false,
+    iot:read = true
 ATTRIBUTE "value1" WITH
     schema:name = "value 1",
     iot:purpose = iot-purpose:value,
     iot:type = iot:type.string,
-    iot:actuator = true,
-    iot:sensor = false,
-    iot:write = true,
-    iot:read = false
+    iot:actuator = false,
+    iot:sensor = true,
+    iot:write = false,
+    iot:read = true
 ATTRIBUTE "value2" WITH
     schema:name = "value 2",
     iot:purpose = iot-purpose:value,
     iot:type = iot:type.string,
-    iot:actuator = true,
-    iot:sensor = false,
-    iot:write = true,
-    iot:read = false
+    iot:actuator = false,
+    iot:sensor = true,
+    iot:write = false,
+    iot:read = true
 ATTRIBUTE "value3" WITH
     schema:name = "value 3",
     iot:purpose = iot-purpose:value,
     iot:type = iot:type.string,
-    iot:actuator = true,
-    iot:sensor = false,
-    iot:write = true,
-    iot:read = false
+    iot:actuator = false,
+    iot:sensor = true,
+    iot:write = false,
+    iot:read = true
 ;
