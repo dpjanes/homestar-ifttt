@@ -134,7 +134,7 @@ IFTTTBridge.prototype._discover_in = function () {
 
         self.discovered(thing);
 
-        var _process = function(request, response) {
+        var _handle = function(request, response) {
             console.log("GET", "talking to me!", request.query, request.body);
             response.send("ok");
         };
@@ -206,7 +206,7 @@ IFTTTBridge.prototype.push = function (pushd, done) {
         pushd: pushd
     }, "push");
 
-    var _run = function() {
+    var _run = function(q, qitem) {
         unirest
             .post('https://maker.ifttt.com/trigger/' + self.initd.event + '/with/key/' + self.key)
             .json()
@@ -263,6 +263,7 @@ IFTTTBridge.prototype.meta = function () {
 
     return {
         "iot:thing-id": _.id.thing_urn.unique_hash("IFTTT", self.initd.event),
+        "iot:vendor.event": self.initd.event,
         "schema:name": self.native.name || "IFTTT",
     };
 };
