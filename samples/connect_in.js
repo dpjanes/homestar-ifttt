@@ -11,6 +11,7 @@ var _ = iotdb._;
 var Bridge = require('../IFTTTBridge').Bridge;
 
 var exemplar = new Bridge({
+    event: "magic",
     port: 22099,
 });
 exemplar.discovered = function (bridge) {

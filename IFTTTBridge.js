@@ -42,38 +42,50 @@ var logger = iotdb.logger({
 var IFTTTBridge = function (initd, native) {
     var self = this;
 
+    // probe - we can ignore
+    if (initd === undefined) {
+        return;
+    }
+
     self.initd = _.defaults(initd,
         iotdb.keystore().get("bridges/IFTTTBridge/initd"), {
             key: null,
             host: null,
             port: null,
-            action: null,
+            event: null,
             uuid: null,
         }
     );
 
     if (_.is.Empty(self.initd.key)) {
-        throw new Error("IFTTTBridge: expected 'key' or /bridges/IFTTTBridge/initd/key");
+        logger.error({
+            method: "IFTTTBridge",
+            initd: self.initd,
+            cause: "caller must initialize with an 'key', to connect to IFTTT",
+        }, "missing initd.key");
+
+        throw new Error("IFTTTBridge: expected 'initd.key'");
     }
 
     // stop the key from leaking into logs
     self.key = self.initd.key;
     delete self.initd.key;
 
-    self.native = native;   // the thing that does the work - keep this name
+    if (!self.initd.event) {
+        logger.error({
+            method: "IFTTTBridge",
+            initd: self.initd,
+            cause: "caller must initialize with an 'event', used to uniquely the Thing to IOTDB and IFTTT",
+        }, "missing initd.event");
+
+        throw new Error("IFTTTBridge: expected 'initd.event'");
+    }
 
     if (self.initd.port && (!self.initd.host || (self.initd.host === "0.0.0.0"))) {
         self.initd.host = _.net.ipv4();
     }
 
-    if (!self.initd.uuid) {
-        logger.error({
-            method: "IFTTTBridge",
-            initd: self.initd,
-            cause: "caller should initialize with an 'uuid', used to uniquely identify things over sessions",
-        }, "missing initd.uuid - problematic");
-    }
-
+    self.native = native;
     if (self.native) {
         self.queue = _.queue("IFTTTBridge");
     }
@@ -99,33 +111,42 @@ IFTTTBridge.prototype.discover = function () {
     }, "called");
 
     if (self.initd.port) {
-        self._app(function (error, native) {
-            if (error) {
-                logger.error({
-                    method: "discover",
-                    initd: self.initd,
-                    error: _.error.message(error),
-                }, "no way to connect");
-
-                return;
-            }
-
-            native.get("/", function(request, response) {
-                console.log("GET", "talking to me!", request.query, request.body);
-                response.send("ok");
-                // self.discovered(new KNXBridge(self.initd, native));
-            });
-            native.post("/", function(request, response) {
-                console.log("POST", "talking to me!", request.query, request.body);
-                response.send("ok");
-                // self.discovered(new KNXBridge(self.initd, native));
-            });
-
-        });
-        
+        self._discover_in();
     } else {
-        self.discovered(new IFTTTBridge(_.d.compose.shallow({}, self.initd), {}));
+        self._discover_out();
     }
+};
+
+IFTTTBridge.prototype._discover_in = function () {
+    var self = this;
+    var thing = new IFTTTBridge(_.d.compose.shallow({}, self.initd), {});
+
+    self._app(function (error, app) {
+        if (error) {
+            logger.error({
+                method: "discover",
+                initd: self.initd,
+                error: _.error.message(error),
+            }, "no way to connect");
+
+            return;
+        }
+
+        self.discovered(thing);
+
+        var _process = function(request, response) {
+            console.log("GET", "talking to me!", request.query, request.body);
+            response.send("ok");
+        };
+
+        app.get("/", _handle);
+        app.post("/", _handle);
+    });
+};
+        
+IFTTTBridge.prototype._discover_out = function () {
+    var self = this;
+    self.discovered(new IFTTTBridge(_.d.compose.shallow({}, self.initd), {}));
 };
 
 /**
@@ -185,18 +206,9 @@ IFTTTBridge.prototype.push = function (pushd, done) {
         pushd: pushd
     }, "push");
 
-    var _push = function () {
-        if (!pushd.action) {
-            logger.error({
-                method: "_push",
-                cause: "all IFTTT Triggers must have an 'action' associated with them",
-            }, "expected 'action'");
-
-            return done(new Error("missing action"), null);
-        }
-
+    var _run = function() {
         unirest
-            .post('https://maker.ifttt.com/trigger/' + pushd.action + '/with/key/' + self.key)
+            .post('https://maker.ifttt.com/trigger/' + self.initd.event + '/with/key/' + self.key)
             .json()
             .send(pushd)
             .end(function (result) {
@@ -204,23 +216,28 @@ IFTTTBridge.prototype.push = function (pushd, done) {
                     logger.error({
                         method: "push/_push",
                         error: result.error,
+                        event: self.initd.event,
                     }, "network error");
+
+                    self.queue.finished(qitem);
                     return done(new Error(result.error), null);
-                } else {
-                    console.log(result.body);
-                    return done(null, null);
                 }
+
+                logger.info({
+                    method: "push/_push",
+                    event: self.initd.event,
+                    pushd: pushd,
+                }, "IFTTT called successfully");
+
+                self.queue.finished(qitem);
+                return done(null, null);
             });
     };
 
-    var qitem = {
+    self.queue.add({
         id: pushd.action,
-        run: function () {
-            _push();
-            self.queue.finished(qitem);
-        }
-    };
-    self.queue.add(qitem);
+        run: _run,
+    });
 };
 
 /**
@@ -245,13 +262,8 @@ IFTTTBridge.prototype.meta = function () {
     }
 
     return {
-        "iot:thing-id": _.id.thing_urn.unique("IFTTT", self.native.uuid, self.initd.number),
+        "iot:thing-id": _.id.thing_urn.unique_hash("IFTTT", self.initd.event),
         "schema:name": self.native.name || "IFTTT",
-
-        // "iot:thing-number": self.initd.number,
-        // "iot:device-id": _.id.thing_urn.unique("IFTTT", self.native.uuid),
-        // "schema:manufacturer": "",
-        // "schema:model": "",
     };
 };
 

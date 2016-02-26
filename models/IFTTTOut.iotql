@@ -3,14 +3,6 @@
 --
 CREATE MODEL IFTTTOut WITH
     schema:name = "IFTTT Generic Outbound"
-ATTRIBUTE event WITH
-    schema:name = "event",
-    iot:purpose = iot-purpose:action,
-    iot:type = iot:type.string,
-    iot:actuator = true,
-    iot:sensor = false,
-    iot:write = true,
-    iot:read = false
 ATTRIBUTE "value1" WITH
     schema:name = "value 1",
     iot:purpose = iot-purpose:value,
