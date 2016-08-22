@@ -23,16 +23,17 @@ Then save
 
 The Trigger Event Name will be "magic"
 
-    var iotdb = require('iotdb');
-    var things = iotdb.connect('IFTTTOut', {
+    const iotdb = require('iotdb');
+    iotdb.use("homestar-ifttt");
+
+    const things = iotdb.connect('IFTTTOut', {
         event: "magic",
     });
     things.set("value1", "some value");
 
 or if you need multiple values
 
-    var iotdb = require('iotdb');
-    var things = iotdb.connect('IFTTTOut', {
+    const things = iotdb.connect('IFTTTOut', {
         event: "magic",
     });
     things.update({
@@ -49,8 +50,6 @@ router to your computer.
 Here's the node code - the "state" will trigger when new messages
 arrive from IFTTT on port 22099 (there's no restriction on the
 port you use).
-
-    var iotdb = require('iotdb');
 
     var things = iotdb.connect('IFTTTIn', {
         event: "magic",

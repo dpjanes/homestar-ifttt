@@ -6,9 +6,9 @@
 
 "use strict";
 
-var iotdb = require('iotdb');
+const iotdb = require('iotdb');
 
-var things = iotdb.connect('IFTTTOut', {
+const things = iotdb.connect('IFTTTOut', {
     event: "magic",
 });
 things.on("istate", function(thing) {
@@ -19,6 +19,11 @@ things.on("meta", function(thing) {
 });
 things.on("thing", function(thing) {
     console.log("+", "discovered", thing.thing_id(), "\n ", thing.state("meta"));
+
+    // note that these will be batched together!
+    thing.set(":value", "hi");  // will be value1
+    thing.set("value2", "there");
+    thing.set("value3", "today");
 });
 
 

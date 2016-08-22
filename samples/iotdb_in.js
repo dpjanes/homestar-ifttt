@@ -6,9 +6,9 @@
 
 "use strict";
 
-var iotdb = require('iotdb');
+const iotdb = require('iotdb');
 
-var things = iotdb.connect('IFTTTIn', {
+const things = iotdb.connect('IFTTTIn', {
     event: "magic",
     port: 22099,
 });
