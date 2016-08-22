@@ -9,7 +9,7 @@
         "iotdb": ">=0.13.0", 
         "unirest": "~0.4.2"
     }, 
-    "description": "HomeStar / IOTDB Bridge for IFTTT", 
+    "description": "IOTDB Bridge for IFTTT", 
     "devDependencies": {
         "grunt": "~0.4.5", 
         "grunt-contrib-jshint": "~1.0.0", 
