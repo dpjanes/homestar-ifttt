@@ -3,27 +3,23 @@
 
 <img src="https://raw.githubusercontent.com/dpjanes/iotdb-homestar/master/docs/HomeStar.png" align="right" />
 
-# Installation
+# Installation and Configuration
 
-[Install Home☆Star first](https://homestar.io/about/install).
+* [Read this first](https://github.com/dpjanes/node-iotdb/blob/master/docs/install.md)
+* [Read about installing Home☆Star](https://github.com/dpjanes/node-iotdb/blob/master/docs/homestar.md) 
 
-Then:
-
-    $ homestar install homestar-ifttt
-
-
-# Configuration
+    $ npm install -g homestar    ## may require sudo
+    $ homestar setup
+    $ npm install homestar-ifttt
 
 Go to the [Maker Page on IFTTT](https://ifttt.com/maker) and copy your API Key.
 Then save
 
     $ homestar set /bridges/IFTTTBridge/initd/key XXXXXXXXXXXYourKeyXXX
 
-# Testing
+# Use
 
-## IOTDB
-
-### Send a Trigger to IFTTT
+## Send a Trigger to IFTTT
 
 The Trigger Event Name will be "magic"
 
@@ -45,7 +41,7 @@ or if you need multiple values
         value3: "some value",
     });
 
-### Receive an Action from IFTTT
+## Receive an Action from IFTTT
 
 If you're at home, you'll have to Tunnel through your
 router to your computer. 
