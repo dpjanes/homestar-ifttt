@@ -6,7 +6,6 @@
 #   2016-02-25
 #
 
-exit 0
 PACKAGE=homestar-ifttt
 DIST_ROOT=/var/tmp/.dist.$$
 

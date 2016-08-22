@@ -7,9 +7,8 @@
 "use strict";
 
 var iotdb = require('iotdb');
-var iot = iotdb.iot();
 
-var things = iot.connect('IFTTTOut', {
+var things = iotdb.connect('IFTTTOut', {
     event: "magic",
 });
 things.on("state", function(thing) {

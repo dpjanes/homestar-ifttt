@@ -1,5 +1,5 @@
 # homestar-ifttt
-IOTDB / Home☆Star Module for [IFTTT]().
+[IOTDB](https://github.com/dpjanes/node-iotdb) Bridge for [IFTTT](https://ifttt.com/maker).
 
 <img src="https://raw.githubusercontent.com/dpjanes/iotdb-homestar/master/docs/HomeStar.png" align="right" />
 
@@ -11,34 +11,64 @@ Then:
 
     $ homestar install homestar-ifttt
 
+
+# Configuration
+
+Go to the [Maker Page on IFTTT](https://ifttt.com/maker) and copy your API Key.
+Then save
+
+    $ homestar set /bridges/IFTTTBridge/initd/key XXXXXXXXXXXYourKeyXXX
+
 # Testing
 
 ## IOTDB
 
-Turn on IFTTT.
+### Send a Trigger to IFTTT
 
-	$ node
-	>>> iotdb = require('iotdb')
-	>>> things = iotdb.connect("IFTTT")
-	>>> things.set(":on", true);
-	
-## [IoTQL](https://github.com/dpjanes/iotdb-iotql)
+The Trigger Event Name will be "magic"
 
-Change to HDMI1 
+    var iotdb = require('iotdb');
+    var things = iotdb.connect('IFTTTOut', {
+        event: "magic",
+    });
+    things.set("value1", "some value");
 
-	$ homestar install iotql
-	$ homestar iotql
-	> SET state:on = true WHERE meta:model-id = "ifttt";
+or if you need multiple values
 
-## Home☆Star
+    var iotdb = require('iotdb');
+    var things = iotdb.connect('IFTTTOut', {
+        event: "magic",
+    });
+    things.update({
+        value1: "some value",
+        value2: "some value",
+        value3: "some value",
+    });
 
-Do:
+### Receive an Action from IFTTT
 
-	$ homestar runner browser=1
-	
-You may have to refresh the page, as it may take a little while for your Things to be discovered. If your TV is not on it won't show up.
+If you're at home, you'll have to Tunnel through your
+router to your computer. 
 
-# Models
-## IFTTT
+Here's the node code - the "state" will trigger when new messages
+arrive from IFTTT on port 22099 (there's no restriction on the
+port you use).
 
-See [IFTTT.iotql](https://github.com/dpjanes/homestar-ifttt/blob/master/models/IFTTT.iotql)
+    var iotdb = require('iotdb');
+
+    var things = iotdb.connect('IFTTTIn', {
+        event: "magic",
+        port: 22099,
+    });
+    things.on("state", function(thing) {
+        console.log("+", "state", thing.thing_id(), "\n ", thing.state("istate"));
+    });
+
+The setup on IFTTT is a little complicated. 
+You have to configure an **Action** with the following values
+
+* Event Name: `magic` (or whatever - it has to match the `connect`)
+* URL: `http://myhost-or-ip:22099/`
+* Method: `POST`
+* Content-Type: `application/json`
+* Body: `{ "event": "<<<{{EventName}}>>>", "value1": "<<<{{Value1}}>>>", "value2": "<<<{{Value2}}>>>", "value3": "<<<{{Value3}}>>>", "when": "<<<{{OccurredAt}}>>>" }`
