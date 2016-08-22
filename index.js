@@ -27,8 +27,3 @@ exports.bindings = [
     require('./models/IFTTTOut').binding,
     require('./models/IFTTTIn').binding,
 ];
-
-exports.iotdb = require("iotdb");
-exports.wrap = function(name, initd) {
-    return exports.iotdb.make_wrap(name, exports.bindings, initd);
-};
