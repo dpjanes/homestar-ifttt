@@ -7,6 +7,7 @@
 "use strict";
 
 const iotdb = require('iotdb');
+iotdb.use("homestar-ifftt");
 
 const things = iotdb.connect('IFTTTIn', {
     event: "magic",
