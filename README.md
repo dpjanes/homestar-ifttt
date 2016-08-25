@@ -15,7 +15,6 @@
 Then:
 
     $ npm install -g homestar    ## may require sudo
-    $ homestar setup
     $ npm install homestar-ifttt
 
 Go to the [Maker Page on IFTTT](https://ifttt.com/maker) and copy your API Key.
