@@ -27,3 +27,5 @@ exports.bindings = [
     require('./models/IFTTTOut').binding,
     require('./models/IFTTTIn').binding,
 ];
+
+exports.module_folder = __dirname;
