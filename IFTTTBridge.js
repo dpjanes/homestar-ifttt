@@ -94,10 +94,6 @@ var IFTTTBridge = function (initd, native) {
 
 IFTTTBridge.prototype = new iotdb.Bridge();
 
-IFTTTBridge.prototype.name = function () {
-    return "IFTTTBridge";
-};
-
 /* --- lifecycle --- */
 
 /**
